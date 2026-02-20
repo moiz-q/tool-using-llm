@@ -496,7 +496,34 @@ python tool_agent.py "Divide by zero"
 python tool_agent.py "Search for empty string"
 ```
 
-## Common Issues
+## Known Limitations
+
+### Multi-Step Tasks
+
+**Issue:** The agent may not reliably execute multi-step tasks like "Calculate X, then search for that result."
+
+**Why:** Smaller models (like llama3.2) with temperature=0.0 can be too deterministic and may not understand complex multi-step instructions well.
+
+**Workarounds:**
+1. **Break into separate queries:**
+   ```bash
+   python tool_agent.py "Calculate 15 + 30"  # Get 45
+   python tool_agent.py "Search for 45"      # Then search
+   ```
+
+2. **Use larger model:** Try llama3.1 or llama3 (larger, better at planning)
+
+3. **Increase temperature:** Try temperature=0.3 for more variety (edit llm.py)
+
+4. **Simplify the task:** "Search for the sum of 15 and 30" might work better
+
+**What works reliably:**
+- ✅ Single tool calls: "What is 25 * 47?"
+- ✅ Simple searches: "Search for Python"
+- ✅ Error handling: "Divide by zero"
+- ⚠️ Multi-step: May require larger models or prompt engineering
+
+This is a common challenge in tool-using LLMs and demonstrates why production systems often use larger models or specialized planning algorithms.
 
 **LLM doesn't call tools:**
 - Check prompt includes tool schemas

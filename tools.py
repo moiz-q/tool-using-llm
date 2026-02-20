@@ -7,19 +7,23 @@ import os
 from typing import Dict, Any, List
 
 
-def calculator(operation: str, a: float, b: float) -> Dict[str, Any]:
+def calculator(operation: str, a, b) -> Dict[str, Any]:
     """
     Perform basic arithmetic operations.
     
     Args:
         operation: One of "add", "subtract", "multiply", "divide"
-        a: First number
-        b: Second number
+        a: First number (will be converted to float if string)
+        b: Second number (will be converted to float if string)
     
     Returns:
         Dict with result or error
     """
     try:
+        # Convert to float if strings (LLMs sometimes pass strings)
+        a = float(a)
+        b = float(b)
+        
         if operation == "add":
             result = a + b
         elif operation == "subtract":
@@ -46,6 +50,11 @@ def calculator(operation: str, a: float, b: float) -> Dict[str, Any]:
             "inputs": {"a": a, "b": b}
         }
     
+    except ValueError as e:
+        return {
+            "success": False,
+            "error": f"Invalid number format: {str(e)}"
+        }
     except Exception as e:
         return {
             "success": False,

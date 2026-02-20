@@ -47,6 +47,7 @@ class ToolAgent:
         
         iteration = 0
         conversation_history = []
+        last_tool_call = None
         
         while iteration < self.max_iterations:
             iteration += 1
@@ -95,6 +96,18 @@ class ToolAgent:
                     prompt += f"\n\nError: You must specify a tool name or set 'done': true."
                     continue
                 
+                # Check for repeated tool calls (loop detection)
+                current_call = (tool_name, json.dumps(arguments, sort_keys=True))
+                if current_call == last_tool_call:
+                    if self.verbose:
+                        print(f"\n[Warning] Repeated tool call detected. Forcing completion.")
+                    # Force the LLM to finish
+                    prompt += f"\n\nYou just called the same tool with the same arguments. You MUST now respond with: {{\"done\": true, \"answer\": \"your final answer using the results you have\"}}"
+                    last_tool_call = None
+                    continue
+                
+                last_tool_call = current_call
+                
                 if self.verbose:
                     print(f"\n[Tool Call] {tool_name}({json.dumps(arguments)})")
                 
@@ -111,9 +124,9 @@ class ToolAgent:
                     "result": result
                 })
                 
-                # Update prompt with result
+                # Update prompt with result - be smarter about multi-step
                 if result.get("success"):
-                    prompt += f"\n\nTool: {tool_name}\nArguments: {json.dumps(arguments)}\nResult: {json.dumps(result)}\n\nYou now have the tool result. Respond with: {{\"done\": true, \"answer\": \"your answer using this result\"}}"
+                    prompt += f"\n\nTool: {tool_name}\nArguments: {json.dumps(arguments)}\nResult: {json.dumps(result)}\n\nNow decide: Is the user's question fully answered? If yes, respond with {{\"done\": true, \"answer\": \"...\"}}. If you need another tool to complete the task, call it now."
                 else:
                     prompt += f"\n\nTool: {tool_name}\nArguments: {json.dumps(arguments)}\nResult: {json.dumps(result)}\n\nThe tool returned an error. Respond with: {{\"done\": true, \"answer\": \"explain the error to the user\"}}"
             
