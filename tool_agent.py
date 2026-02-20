@@ -112,7 +112,10 @@ class ToolAgent:
                 })
                 
                 # Update prompt with result
-                prompt += f"\n\nTool: {tool_name}\nArguments: {json.dumps(arguments)}\nResult: {json.dumps(result)}\n\nWhat's next?"
+                if result.get("success"):
+                    prompt += f"\n\nTool: {tool_name}\nArguments: {json.dumps(arguments)}\nResult: {json.dumps(result)}\n\nYou now have the tool result. Respond with: {{\"done\": true, \"answer\": \"your answer using this result\"}}"
+                else:
+                    prompt += f"\n\nTool: {tool_name}\nArguments: {json.dumps(arguments)}\nResult: {json.dumps(result)}\n\nThe tool returned an error. Respond with: {{\"done\": true, \"answer\": \"explain the error to the user\"}}"
             
             except Exception as e:
                 if self.verbose:
@@ -142,23 +145,22 @@ class ToolAgent:
 Available tools:
 {tools_json}
 
-IMPORTANT RULES:
-1. You MUST use tools to get information - do NOT make up or guess results
-2. To use a tool, respond with JSON in this exact format:
+CRITICAL RULES:
+1. To use a tool, respond with ONLY this JSON:
    {{"tool": "tool_name", "arguments": {{"param": "value"}}}}
 
-3. After receiving tool results, you can:
-   - Call another tool if needed: {{"tool": "tool_name", "arguments": {{...}}}}
-   - Finish with your answer: {{"done": true, "answer": "your final answer"}}
+2. After you receive a tool result, you MUST respond with ONLY this JSON:
+   {{"done": true, "answer": "your final answer using the tool result"}}
 
-4. If a tool is not appropriate for the task, refuse:
+3. If a tool is not appropriate, respond with ONLY this JSON:
    {{"refuse": true, "reason": "explanation"}}
 
-5. NEVER make up tool results - always wait for actual tool execution
+4. NEVER make up tool results - always wait for actual tool execution
+5. ALWAYS finish after getting a tool result - do not call the same tool twice
 
 User question: {question}
 
-Respond with JSON:"""
+Respond with JSON only:"""
         
         return prompt
     

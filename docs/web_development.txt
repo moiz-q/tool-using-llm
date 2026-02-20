@@ -1,0 +1,9 @@
+Web Development Overview
+
+Web development involves building websites and web applications. It typically consists of two main areas:
+
+Frontend Development: The client-side of web applications, dealing with what users see and interact with. Technologies include HTML, CSS, and JavaScript.
+
+Backend Development: The server-side of web applications, handling data storage, business logic, and server configuration. Common languages include Python, JavaScript (Node.js), Java, and Ruby.
+
+Modern web development often uses frameworks like React, Vue.js, Django, and Express.js to speed up development.
